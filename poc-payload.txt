@@ -1,1 +1,4 @@
-TRUSTED BASE PAYLOAD
+ATTACKER-CONTROLLED PAYLOAD FROM THE FORK
+
+If this text appears in a commit made to the base organization's colliding
+branch, the base workflow trusted fork data after checking only github.actor.
