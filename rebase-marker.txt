@@ -1,0 +1,1 @@
+This benign commit makes the fork's Dependabot PR require a bot-driven rebase.
