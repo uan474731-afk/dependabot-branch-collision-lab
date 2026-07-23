@@ -5,6 +5,6 @@
   "description": "Controlled reproduction of a GitHub Actions branch-confusion issue",
   "license": "UNLICENSED",
   "dependencies": {
-    "is-number": "6.0.0"
+    "is-number": "7.0.0"
   }
 }
