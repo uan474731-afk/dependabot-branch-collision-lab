@@ -1,0 +1,10 @@
+{
+  "name": "dependabot-branch-collision-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Controlled reproduction of a GitHub Actions branch-confusion issue",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "is-number": "6.0.0"
+  }
+}
